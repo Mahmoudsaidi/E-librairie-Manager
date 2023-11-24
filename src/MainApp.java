@@ -6,9 +6,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 public class MainApp extends Application {
+    
+
     @Override
     public void start(Stage primaryStage) {
-        
         Parent root;
         try {
             root = FXMLLoader.load(getClass().getResource("MainScene.fxml"));
@@ -17,11 +18,13 @@ public class MainApp extends Application {
             primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {
+            
         }
         
     }
  
  public static void main(String[] args) {
+        System.setProperty("prism.order", "sw");
         launch(args);
     }
 }
