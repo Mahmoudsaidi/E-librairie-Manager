@@ -11,13 +11,14 @@ public class RentJFrame extends JFrame {
         setTitle("Rent Book");
         setSize(400, 300);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         setVisible(true);
     }
 
     private void initComponents(int bookId) {
         JPanel mainPanel = new JPanel(new BorderLayout());
-
+        if(checkBookAvailability(bookId))
+         {
         try {
             String jdbcURL = "jdbc:sqlite:library.db";
             Connection connection = DriverManager.getConnection(jdbcURL);
@@ -55,37 +56,40 @@ public class RentJFrame extends JFrame {
                 JLabel dateLabel = new JLabel("Date of Rent: " + getCurrentDateTime());
                 dateLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 mainPanel.add(dateLabel, BorderLayout.SOUTH);
+                //
+                
+                    String insertQuery = "INSERT INTO Emprunt (id_utilisateur, id_livre, date_emprunt, statut) VALUES (?, ?, ?, ?)";
+                    PreparedStatement insertStatement = connection.prepareStatement(insertQuery);
+                    insertStatement.setInt(1, LoginJFrame.getUserIdFromDatabase(LoginJFrame.getUsername(), LoginJFrame.getpassword()));
+                    insertStatement.setInt(2, bookId);
+                    insertStatement.setString(3, getCurrentDateTime());
+                    insertStatement.setString(4, "en cours");
+                    insertStatement.executeUpdate();
 
-                // Store the information in the Emprunt table
-                String insertQuery = "INSERT INTO Emprunt (id_utilisateur, id_livre, date_emprunt, statut) VALUES (?, ?, ?, ?)";
-                PreparedStatement insertStatement = connection.prepareStatement(insertQuery);
-                insertStatement.setInt(1, LoginJFrame.getUserIdFromDatabase(LoginJFrame.getUsername(), LoginJFrame.getpassword()));
-                insertStatement.setInt(2, bookId);
-                insertStatement.setString(3, getCurrentDateTime());
-                insertStatement.setString(4, "en cours");
-                insertStatement.executeUpdate();
+                    // Update the disponibilite status in Livre table to 'Indisponible'
+                    String updateQuery = "UPDATE Livre SET disponibilite = 'Indisponible' WHERE id_livre = ?";
+                    PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
+                    updateStatement.setInt(1, bookId);
+                    updateStatement.executeUpdate();
 
-                // Update the disponibilite status in Livre table to 'Indisponible'
-                String updateQuery = "UPDATE Livre SET disponibilite = 'Indisponible' WHERE id_livre = ?";
-                PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
-                updateStatement.setInt(1, bookId);
-                updateStatement.executeUpdate();
-
-                resultSet.close();
-                preparedStatement.close();
-                insertStatement.close();
-                updateStatement.close();
+                    resultSet.close();
+                    preparedStatement.close();
+                    insertStatement.close();
+                    updateStatement.close();
             } else {
                 JOptionPane.showMessageDialog(null, "Book not found.");
             }
+              
 
             connection.close();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-
         add(mainPanel);
         setResizable(false);
+    }else{
+        JOptionPane.showMessageDialog(null, "Book not found.");
+    }
     }
 
     private String getCurrentDateTime() {
@@ -93,4 +97,29 @@ public class RentJFrame extends JFrame {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return currentDateTime.format(formatter);
     }
+
+    private boolean checkBookAvailability(int bookId) {
+        boolean isAvailable = false;
+        String jdbcURL = "jdbc:sqlite:library.db";
+    
+        try (Connection connection = DriverManager.getConnection(jdbcURL)) {
+            String query = "SELECT disponibilite FROM Livre WHERE id_livre = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, bookId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+    
+            if (resultSet.next()) {
+                String availability = resultSet.getString("disponibilite");
+                isAvailable = availability.equals("Available");
+            }
+    
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    
+        return isAvailable;
+    }
+    
 }

@@ -69,9 +69,10 @@ public class UserJFrame extends JFrame {
     
         try (Connection connection = DriverManager.getConnection(jdbcURL)) {
             String query = "SELECT Livre.titre, Emprunt.date_emprunt, Emprunt.statut " +
-                    "FROM Emprunt " +
-                    "INNER JOIN Livre ON Emprunt.id_livre = Livre.id_livre " +
-                    "WHERE Emprunt.id_utilisateur = ?";
+               "FROM Emprunt " +
+               "INNER JOIN Livre ON Emprunt.id_livre = Livre.id_livre " +
+               "WHERE Emprunt.id_utilisateur = ? AND Emprunt.statut = 'en cours'";
+;
     
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, userId);
@@ -235,8 +236,8 @@ public class UserJFrame extends JFrame {
         return bookId;
     }
 
-    private Object returnBook(int bookId) {
-        return null;
+    private void returnBook(int bookId) {
+        new ReturnJFrame(bookId);
     }
     
 

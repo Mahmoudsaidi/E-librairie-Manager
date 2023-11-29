@@ -1,0 +1,14 @@
+• The identification of the different users of the application (students, teachers,
+librarians). Done # students teachers librarians
+
+• Management of book borrowing and returns. Done # students teachers
+
+• Consultation of the borrowing history for a given user. Done # students teachers librarians
+
+• Online reservation of unavailable books.
+
+• Email notification for return reminders.
+
+• Generating statistical reports on the most borrowed books or users
+    more diligent.         
+     Number Of Borrowing/Number Of Borrowing For each user

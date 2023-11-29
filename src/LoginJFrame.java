@@ -210,8 +210,8 @@ public class LoginJFrame extends JFrame {
         return String.valueOf(passwordField.getPassword());
     }
     public static int getUserIdFromDatabase(String username, String password) {
-        int userId = -1; // Initialize to an invalid value as -1 or any value that represents "not found"
-        String jdbcURL = "jdbc:sqlite:library.db"; // Replace with your database URL
+        int userId = -1; 
+        String jdbcURL = "jdbc:sqlite:library.db"; 
 
         try (Connection connection = DriverManager.getConnection(jdbcURL)) {
             String query = "SELECT id_utilisateur FROM Utilisateur WHERE login = ? AND pwd = ?";
