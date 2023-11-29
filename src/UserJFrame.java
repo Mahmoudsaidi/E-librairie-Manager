@@ -16,18 +16,21 @@ public class UserJFrame extends JFrame {
         initComponents();
         setTitle(user + " Platform");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(1000, 600);
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
     private void initComponents() {
-        JPanel mainPanel = new JPanel(new BorderLayout());
 
-        JLabel welcomeLabel = new JLabel("Welcome, " + user + "!");
-        welcomeLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        mainPanel.add(welcomeLabel, BorderLayout.NORTH);
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException |
+                IllegalAccessException | UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
 
         searchField = new JTextField(20);
         JButton searchButton = new JButton("Search");
@@ -48,7 +51,62 @@ public class UserJFrame extends JFrame {
         mainPanel.add(searchScrollPane, BorderLayout.CENTER);
 
         searchButton.addActionListener(e -> searchBooks());
-         // Rent button action listener for opening RentJFrame
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setDividerLocation(300);
+
+        JPanel rentedBooksPanel = new JPanel(new BorderLayout());
+        JLabel rentedBooksLabel = new JLabel("Rented Books");
+        rentedBooksLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        rentedBooksLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rentedBooksPanel.add(rentedBooksLabel, BorderLayout.NORTH);
+        rentedBooksPanel.add(rentedScrollPane, BorderLayout.CENTER);
+
+        JPanel comboAndButtonPanel = new JPanel(new BorderLayout());
+        JComboBox<String> rentedBooksComboBox = new JComboBox<>();
+        int userId = LoginJFrame.getUserIdFromDatabase(user, LoginJFrame.getpassword());
+        String jdbcURL = "jdbc:sqlite:library.db";
+    
+        try (Connection connection = DriverManager.getConnection(jdbcURL)) {
+            String query = "SELECT Livre.titre, Emprunt.date_emprunt, Emprunt.statut " +
+                    "FROM Emprunt " +
+                    "INNER JOIN Livre ON Emprunt.id_livre = Livre.id_livre " +
+                    "WHERE Emprunt.id_utilisateur = ?";
+    
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, userId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+    
+            while (resultSet.next()) {
+                String title = resultSet.getString("titre");
+                rentedBooksComboBox.addItem(title);
+            }
+            
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        JPanel comboBoxPanel = new JPanel();
+        JLabel rentedText = new JLabel("Rented Books to return : ");
+        comboBoxPanel.add(rentedText);
+        comboBoxPanel.add(rentedBooksComboBox);
+
+        JButton returnButton = new JButton("Return Book");
+        returnButton.addActionListener(e -> {
+            String selectedBook = rentedBooksComboBox.getSelectedItem().toString();
+            int bookId = getBookIdFromDatabase(selectedBook);
+            returnBook(bookId);
+            loadRentedBooks(); 
+        });
+
+        comboAndButtonPanel.add(comboBoxPanel, BorderLayout.CENTER);
+        comboAndButtonPanel.add(returnButton, BorderLayout.SOUTH);
+
+        splitPane.setLeftComponent(rentedBooksPanel);
+        splitPane.setRightComponent(comboAndButtonPanel);
+        searchButton.addActionListener(e -> searchBooks());
+         
         searchResultTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -63,47 +121,15 @@ public class UserJFrame extends JFrame {
             }
         }
     });
-    
+
+        mainPanel.add(splitPane, BorderLayout.EAST);
 
         add(mainPanel);
+        pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
         setResizable(false);
-
-        // Set up rented books table on the right side
-        JPanel rentedBooksPanel = new JPanel(new BorderLayout());
-        JLabel rentedBooksLabel = new JLabel("Rented Books");
-        rentedBooksLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        rentedBooksLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        rentedBooksPanel.add(rentedBooksLabel, BorderLayout.NORTH);
-        rentedBooksPanel.add(rentedScrollPane, BorderLayout.CENTER);
-
-        mainPanel.add(rentedBooksPanel, BorderLayout.EAST);
-
-        loadRentedBooks(); // Load rented books for the current user initially
-    }
-    private int getBookIdFromDatabase(String bookTitle) {
-        int bookId = 0; // Default value
-    
-        // Your database connection code here to retrieve the book ID based on the book title
-    
-        // Example code for database retrieval (replace with your own)
-        String jdbcURL = "jdbc:sqlite:library.db";
-        try (Connection connection = DriverManager.getConnection(jdbcURL)) {
-            String query = "SELECT id_livre FROM Livre WHERE titre = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, bookTitle);
-            ResultSet resultSet = preparedStatement.executeQuery();
-    
-            if (resultSet.next()) {
-                bookId = resultSet.getInt("id_livre");
-            }
-    
-            resultSet.close();
-            preparedStatement.close();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    
-        return bookId;
+        loadRentedBooks();
     }
 
     private void searchBooks() {
@@ -121,7 +147,7 @@ public class UserJFrame extends JFrame {
 
             String jdbcURL = "jdbc:sqlite:library.db";
             try (Connection connection = DriverManager.getConnection(jdbcURL)) {
-                String query = "SELECT * FROM Livre WHERE titre LIKE ? AND disponibilite = 'Available'";
+                String query = "SELECT * FROM Livre WHERE titre LIKE ? ";
                 PreparedStatement preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, "%" + searchTerm + "%");
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -145,21 +171,22 @@ public class UserJFrame extends JFrame {
             JOptionPane.showMessageDialog(null, "Please enter a search term.");
         }
     }
-
-    private void loadRentedBooks() {
+        
+    public void loadRentedBooks() {
         rentedTableModel.setRowCount(0);
         rentedTableModel.setColumnCount(0);
+        JComboBox<String> rentedBooksComboBox = new JComboBox<>();
+        rentedBooksComboBox.setPreferredSize(new Dimension(200, 25));
     
         rentedTableModel.addColumn("Title");
         rentedTableModel.addColumn("Rent Date");
         rentedTableModel.addColumn("Status");
-        rentedTableModel.addColumn("Return"); // Column for the Return button
     
         int userId = LoginJFrame.getUserIdFromDatabase(user, LoginJFrame.getpassword());
         String jdbcURL = "jdbc:sqlite:library.db";
     
         try (Connection connection = DriverManager.getConnection(jdbcURL)) {
-            String query = "SELECT Livre.titre, Emprunt.date_emprunt, Emprunt.statut, Emprunt.id_livre " +
+            String query = "SELECT Livre.titre, Emprunt.date_emprunt, Emprunt.statut " +
                     "FROM Emprunt " +
                     "INNER JOIN Livre ON Emprunt.id_livre = Livre.id_livre " +
                     "WHERE Emprunt.id_utilisateur = ?";
@@ -172,15 +199,31 @@ public class UserJFrame extends JFrame {
                 String title = resultSet.getString("titre");
                 String rentDate = resultSet.getString("date_emprunt");
                 String status = resultSet.getString("statut");
-                int bookId = resultSet.getInt("id_livre");
     
-                // Create a Return button for each book
-                JButton returnButton = new JButton("Return");
-                returnButton.addActionListener(e -> returnBook(bookId)); // Call returnBook with the bookId
-    
-                // Add the book details and button to the table
-                Object[] rowData = {title, rentDate, status, returnButton};
+                Object[] rowData = {title, rentDate, status};
                 rentedTableModel.addRow(rowData);
+            }
+            
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    
+    private int getBookIdFromDatabase(String bookTitle) {
+        int bookId = 0;
+        String jdbcURL = "jdbc:sqlite:library.db";
+    
+        try (Connection connection = DriverManager.getConnection(jdbcURL)) {
+            String query = "SELECT id_livre FROM Livre WHERE titre = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, bookTitle);
+            ResultSet resultSet = preparedStatement.executeQuery();
+    
+            if (resultSet.next()) {
+                bookId = resultSet.getInt("id_livre");
             }
     
             resultSet.close();
@@ -189,11 +232,8 @@ public class UserJFrame extends JFrame {
             ex.printStackTrace();
         }
     
-        // Set cell renderer and editor for the "Return" column
-        rentedBooksTable.getColumn("Return").setCellRenderer(new ButtonRenderer());
-        rentedBooksTable.getColumn("Return").setCellEditor(new ButtonEditor(new JCheckBox()));
+        return bookId;
     }
-    
 
     private Object returnBook(int bookId) {
         return null;
