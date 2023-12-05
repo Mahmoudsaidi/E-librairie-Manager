@@ -25,8 +25,8 @@ public class UserJFrame extends JFrame {
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | InstantiationException |
-                IllegalAccessException | UnsupportedLookAndFeelException e) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+                | UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
 
@@ -66,23 +66,23 @@ public class UserJFrame extends JFrame {
         JComboBox<String> rentedBooksComboBox = new JComboBox<>();
         int userId = LoginJFrame.getUserIdFromDatabase(user, LoginJFrame.getpassword());
         String jdbcURL = "jdbc:sqlite:library.db";
-    
+
         try (Connection connection = DriverManager.getConnection(jdbcURL)) {
             String query = "SELECT Livre.titre, Emprunt.date_emprunt, Emprunt.statut " +
-               "FROM Emprunt " +
-               "INNER JOIN Livre ON Emprunt.id_livre = Livre.id_livre " +
-               "WHERE Emprunt.id_utilisateur = ? AND Emprunt.statut = 'en cours'";
-;
-    
+                    "FROM Emprunt " +
+                    "INNER JOIN Livre ON Emprunt.id_livre = Livre.id_livre " +
+                    "WHERE Emprunt.id_utilisateur = ? AND Emprunt.statut = 'en cours'";
+            ;
+
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
-    
+
             while (resultSet.next()) {
                 String title = resultSet.getString("titre");
                 rentedBooksComboBox.addItem(title);
             }
-            
+
             resultSet.close();
             preparedStatement.close();
         } catch (SQLException ex) {
@@ -97,8 +97,8 @@ public class UserJFrame extends JFrame {
         returnButton.addActionListener(e -> {
             String selectedBook = rentedBooksComboBox.getSelectedItem().toString();
             int bookId = getBookIdFromDatabase(selectedBook);
-            returnBook(bookId);
-            loadRentedBooks(); 
+            new ReturnJFrame(bookId);
+            loadRentedBooks();
         });
 
         comboAndButtonPanel.add(comboBoxPanel, BorderLayout.CENTER);
@@ -107,21 +107,23 @@ public class UserJFrame extends JFrame {
         splitPane.setLeftComponent(rentedBooksPanel);
         splitPane.setRightComponent(comboAndButtonPanel);
         searchButton.addActionListener(e -> searchBooks());
-         
+
         searchResultTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-            int column = searchResultTable.getColumnModel().getColumnIndexAtX(evt.getX());
-            int row = evt.getY() / searchResultTable.getRowHeight();
+                int column = searchResultTable.getColumnModel().getColumnIndexAtX(evt.getX());
+                int row = evt.getY() / searchResultTable.getRowHeight();
 
-            if (column == searchResultTable.getColumnModel().getColumnIndex("Rent") && row < searchResultTable.getRowCount()) {
-                String bookTitle = searchTableModel.getValueAt(row, 0).toString();
-                int bookId = getBookIdFromDatabase(bookTitle);
-                RentJFrame rentPage = new RentJFrame(bookId);
-                rentPage.setVisible(true);
+                if (column == searchResultTable.getColumnModel().getColumnIndex("Rent")
+                        && row < searchResultTable.getRowCount()) {
+                    String bookTitle = searchTableModel.getValueAt(row, 0).toString();
+                    int bookId = getBookIdFromDatabase(bookTitle);
+                    RentJFrame rentPage = new RentJFrame(bookId);
+                    rentPage.setVisible(true);
+                    loadRentedBooks();
+                }
             }
-        }
-    });
+        });
 
         mainPanel.add(splitPane, BorderLayout.EAST);
 
@@ -158,8 +160,11 @@ public class UserJFrame extends JFrame {
                     String author = resultSet.getString("auteur");
                     String genre = resultSet.getString("genre");
                     String availability = resultSet.getString("disponibilite");
+                    
+                    String rentOrReserve = availability.equals("Available") ? "Rent" : "Reserve";
 
-                    Object[] rowData = {title, author, genre, availability, "Rent"};
+                    Object[] rowData = {title, author, genre, availability, rentOrReserve};
+    
                     searchTableModel.addRow(rowData);
                 }
 
@@ -172,75 +177,68 @@ public class UserJFrame extends JFrame {
             JOptionPane.showMessageDialog(null, "Please enter a search term.");
         }
     }
-        
+
     public void loadRentedBooks() {
         rentedTableModel.setRowCount(0);
         rentedTableModel.setColumnCount(0);
         JComboBox<String> rentedBooksComboBox = new JComboBox<>();
         rentedBooksComboBox.setPreferredSize(new Dimension(200, 25));
-    
+
         rentedTableModel.addColumn("Title");
         rentedTableModel.addColumn("Rent Date");
         rentedTableModel.addColumn("Status");
-    
+
         int userId = LoginJFrame.getUserIdFromDatabase(user, LoginJFrame.getpassword());
         String jdbcURL = "jdbc:sqlite:library.db";
-    
+
         try (Connection connection = DriverManager.getConnection(jdbcURL)) {
             String query = "SELECT Livre.titre, Emprunt.date_emprunt, Emprunt.statut " +
                     "FROM Emprunt " +
                     "INNER JOIN Livre ON Emprunt.id_livre = Livre.id_livre " +
                     "WHERE Emprunt.id_utilisateur = ?";
-    
+
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
-    
+
             while (resultSet.next()) {
                 String title = resultSet.getString("titre");
                 String rentDate = resultSet.getString("date_emprunt");
                 String status = resultSet.getString("statut");
-    
-                Object[] rowData = {title, rentDate, status};
+
+                Object[] rowData = { title, rentDate, status };
                 rentedTableModel.addRow(rowData);
             }
-            
+
             resultSet.close();
             preparedStatement.close();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
-    
-    
+
     private int getBookIdFromDatabase(String bookTitle) {
         int bookId = 0;
         String jdbcURL = "jdbc:sqlite:library.db";
-    
+
         try (Connection connection = DriverManager.getConnection(jdbcURL)) {
             String query = "SELECT id_livre FROM Livre WHERE titre = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, bookTitle);
             ResultSet resultSet = preparedStatement.executeQuery();
-    
+
             if (resultSet.next()) {
                 bookId = resultSet.getInt("id_livre");
             }
-    
+
             resultSet.close();
             preparedStatement.close();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-    
+
         return bookId;
     }
-
-    private void returnBook(int bookId) {
-        new ReturnJFrame(bookId);
-    }
     
 
-    
-    }
-
+}

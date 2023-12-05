@@ -30,9 +30,8 @@ public class App {
         try {
             SQLiteDBInitializer dbInitializer = new SQLiteDBInitializer();
             dbInitializer.createTables();
-            System.out.println("Database tables created successfully.");
         } catch (Exception e) {
-            System.out.println("Error initializing database: " + e.getMessage());
+    
         }
     }
     

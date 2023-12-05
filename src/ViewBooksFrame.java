@@ -2,15 +2,14 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.*;
 
 public class ViewBooksFrame extends JFrame {
     private JTable bookTable;
     private DefaultTableModel tableModel;
+    
 
     public ViewBooksFrame() {
         initComponents();
@@ -22,18 +21,25 @@ public class ViewBooksFrame extends JFrame {
 
         displayBooksFromDatabase();
     }
-
+    
     private void initComponents() {
         JPanel mainPanel = new JPanel(new BorderLayout());
 
         // Table setup
         String[] columnNames = {"Title", "Author", "Genre", "Availability", "Remove"};
-        tableModel = new DefaultTableModel(columnNames, 0);
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 4; // Make only "Remove" column editable
+            }
+        };
         bookTable = new JTable(tableModel);
-
+        
         // Add a button to each row for removal
         bookTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
-        bookTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JCheckBox()));
+        bookTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JCheckBox(), bookTable, tableModel));
+
+
 
         JScrollPane scrollPane = new JScrollPane(bookTable);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
@@ -70,15 +76,9 @@ public class ViewBooksFrame extends JFrame {
             e.printStackTrace();
         }
     }
-
-    // ButtonRenderer and ButtonEditor classes (from previous example)
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(ViewBooksFrame::new);
-    }
 }
-class ButtonRenderer extends JButton implements TableCellRenderer {
 
+class ButtonRenderer extends JButton implements TableCellRenderer {
     public ButtonRenderer() {
         setOpaque(true);
     }
@@ -91,14 +91,43 @@ class ButtonRenderer extends JButton implements TableCellRenderer {
 }
 
 class ButtonEditor extends DefaultCellEditor {
-
     protected JButton button;
+    private DefaultTableModel tableModel;
 
-    public ButtonEditor(JCheckBox checkBox) {
-        super(checkBox);
-        button = new JButton();
-        button.setOpaque(true);
-        button.addActionListener(e -> fireEditingStopped());
+    public ButtonEditor(JCheckBox checkBox, JTable bookTable, DefaultTableModel tableModel) {
+    super(checkBox);
+    this.tableModel = tableModel;
+
+    button = new JButton("Remove");
+    button.setOpaque(true);
+    button.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int row = bookTable.getSelectedRow();
+            if (row != -1) {
+                removeBookFromDatabase(row);
+                tableModel.removeRow(row);
+            }
+        }
+    });
+}
+
+
+    private void removeBookFromDatabase(int row) {
+        String bookTitle = (String) tableModel.getValueAt(row, 0);
+        String jdbcURL = "jdbc:sqlite:library.db";
+
+        try (Connection connection = DriverManager.getConnection(jdbcURL)) {
+            if (connection != null) {
+                String query = "DELETE FROM Livre WHERE titre = ?";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, bookTitle);
+                preparedStatement.executeUpdate();
+                preparedStatement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -110,7 +139,6 @@ class ButtonEditor extends DefaultCellEditor {
             button.setForeground(table.getForeground());
             button.setBackground(UIManager.getColor("Button.background"));
         }
-        button.setText((value == null) ? "" : value.toString());
         return button;
     }
 

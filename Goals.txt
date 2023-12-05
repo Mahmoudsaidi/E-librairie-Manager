@@ -5,9 +5,9 @@ librarians). Done # students teachers librarians
 
 • Consultation of the borrowing history for a given user. Done # students teachers librarians
 
-• Online reservation of unavailable books.
+• Online reservation of unavailable books. Done students teachers
 
-• Email notification for return reminders.
+• Email notification for return reminders. Done
 
 • Generating statistical reports on the most borrowed books or users
     more diligent.         
