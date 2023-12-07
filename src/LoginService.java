@@ -12,7 +12,7 @@ public class LoginService {
             preparedStatement.setString(2, password);
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            isValid = resultSet.next(); // Check if any matching user found
+            isValid = resultSet.next(); 
         } catch (SQLException e) {
             e.printStackTrace();
         }

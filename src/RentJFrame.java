@@ -8,16 +8,21 @@ public class RentJFrame extends JFrame {
 
     public RentJFrame(int bookId) {
         initComponents(bookId);
-        setTitle("Rent Book");
-        setSize(400, 300);
-        setLocationRelativeTo(null);
-
-        setVisible(true);
+        setAppIcon();
+    }
+    private void setAppIcon() {
+        ImageIcon icon = new ImageIcon(getClass().getResource("ProgIcon.png"));
+        setIconImage(icon.getImage());
     }
 
     private void initComponents(int bookId) {
 
         if (checkBookAvailability(bookId)) {
+            setTitle("Rent Book");
+            setSize(400, 300);
+            setLocationRelativeTo(null);
+
+        setVisible(true);
             JPanel mainPanel = new JPanel(new BorderLayout());
             try {
                 String jdbcURL = "jdbc:sqlite:library.db";
@@ -57,7 +62,7 @@ public class RentJFrame extends JFrame {
                     String insertQuery = "INSERT INTO Emprunt (id_utilisateur, id_livre, date_emprunt, statut) VALUES (?, ?, ?, ?)";
                     PreparedStatement insertStatement = connection.prepareStatement(insertQuery);
                     insertStatement.setInt(1,
-                            LoginJFrame.getUserIdFromDatabase(LoginJFrame.getUsername(), LoginJFrame.getpassword()));
+                    Utilitys.getUserIdFromDatabase(LoginJFrame.getUsername(), LoginJFrame.getpassword()));
                     insertStatement.setInt(2, bookId);
                     insertStatement.setString(3, getCurrentDateTime());
                     insertStatement.setString(4, "en cours");
@@ -72,17 +77,15 @@ public class RentJFrame extends JFrame {
                     preparedStatement.close();
                     insertStatement.close();
                     updateStatement.close();
-                } else {
-
                 }
-
                 connection.close();
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                
             }
             add(mainPanel);
             setResizable(false);
-        } else {
+        } else
+        {
             new ReservationJFrame(bookId);
         }
     }
@@ -111,7 +114,7 @@ public class RentJFrame extends JFrame {
             resultSet.close();
             preparedStatement.close();
         } catch (SQLException ex) {
-            ex.printStackTrace();
+           
         }
 
         return isAvailable;

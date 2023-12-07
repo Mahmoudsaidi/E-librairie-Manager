@@ -43,10 +43,11 @@ public class EmailSender {
     }
 
    /*public static void main(String[] args) {
-      
+                ***this is a working email***
         String username1 = "e.librairie.manager@gmail.com"; 
         String password1 = "Midous 1234567890";
-
+                    ***************
+                    
         String toEmail1 = "gamershome2@gmail.com";
         String subject1 = "Subject for Email 1";
 

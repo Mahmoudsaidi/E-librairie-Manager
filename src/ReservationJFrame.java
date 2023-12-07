@@ -12,10 +12,15 @@ public class ReservationJFrame extends JFrame {
 
     public ReservationJFrame(int bookId) {
         initComponents(bookId);
+        setAppIcon();
         setTitle("Book Reservation");
         setSize(400, 300);
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+    private void setAppIcon() {
+        ImageIcon icon = new ImageIcon(getClass().getResource("ProgIcon.png"));
+        setIconImage(icon.getImage());
     }
 
     private void initComponents(int bookId) {
@@ -26,7 +31,7 @@ public class ReservationJFrame extends JFrame {
 
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:library.db")) {
             String currentDate = getCurrentDateTime();
-            int id_utilisateur = LoginJFrame.getUserIdFromDatabase(LoginJFrame.getUsername(), LoginJFrame.getpassword());
+            int id_utilisateur = Utilitys.getUserIdFromDatabase(LoginJFrame.getUsername(), LoginJFrame.getpassword());
 
             String insertQuery = "INSERT INTO Reservation (id_utilisateur, id_livre, date_reservation, statut) VALUES (?, ?, ?, ?)";
             PreparedStatement insertStatement = connection.prepareStatement(insertQuery);
@@ -66,8 +71,7 @@ public class ReservationJFrame extends JFrame {
             JOptionPane.showMessageDialog(null, "Book reservation successful!");
 
         } catch (SQLException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Failed to reserve book.");
+            
         }
 
         add(mainPanel);

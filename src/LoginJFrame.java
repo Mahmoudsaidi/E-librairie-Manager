@@ -1,12 +1,5 @@
+import javax.swing.*;import java.awt.*;
 
-import javax.swing.*;
-
-import java.awt.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class LoginJFrame extends JFrame {
 
@@ -19,19 +12,17 @@ public class LoginJFrame extends JFrame {
     public JButton loginButton, signupButton;
     public JComboBox<String> roleComboBox;
 
-    private static final int x = 300; // Example x coordinate 50
-    private static final int y = 120; // Example y coordinate
+    private static final int x = 300; 
+    private static final int y = 120; 
 
     public LoginJFrame() {
         setAppIcon();
         initComponents(); 
     }
     private void setAppIcon() {
-        // Load the icon image using getResource()
         ImageIcon icon = new ImageIcon(getClass().getResource("ProgIcon.png"));
         setIconImage(icon.getImage());
     }
-     
 
 
     private void initComponents() {
@@ -209,29 +200,6 @@ public class LoginJFrame extends JFrame {
     public static String getpassword() {
         return String.valueOf(passwordField.getPassword());
     }
-    public static int getUserIdFromDatabase(String username, String password) {
-        int userId = -1; 
-        String jdbcURL = "jdbc:sqlite:library.db"; 
-
-        try (Connection connection = DriverManager.getConnection(jdbcURL)) {
-            String query = "SELECT id_utilisateur FROM Utilisateur WHERE login = ? AND pwd = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, password);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                userId = resultSet.getInt("id_utilisateur");
-            }
-
-            resultSet.close();
-            preparedStatement.close();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-
-        return userId;
-    }
+   
 
 }

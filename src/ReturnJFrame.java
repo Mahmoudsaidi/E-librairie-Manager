@@ -8,12 +8,16 @@ public class ReturnJFrame extends JFrame {
 
     public ReturnJFrame(int bookId) {
         initComponents(bookId);
+        setAppIcon();
         setTitle("Return Book");
         setSize(400, 300);
         setLocationRelativeTo(null);
         setVisible(true);
     }
-
+    private void setAppIcon() {
+        ImageIcon icon = new ImageIcon(getClass().getResource("ProgIcon.png"));
+        setIconImage(icon.getImage());
+    }
     private void initComponents(int bookId) {
         JPanel mainPanel = new JPanel(new BorderLayout());
         try {
@@ -46,18 +50,13 @@ public class ReturnJFrame extends JFrame {
                 infoPanel.add(availabilityLabel);
 
                 mainPanel.add(infoPanel, BorderLayout.CENTER);
-
-                // Display current date and time
                 JLabel dateLabel = new JLabel("Date of Return: " + getCurrentDateTime());
                 dateLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 mainPanel.add(dateLabel, BorderLayout.SOUTH);
 
                 confirmReturn(bookId, getCurrentDateTime(), connection);
 
-            } else {
-                JOptionPane.showMessageDialog(null, "Book not found.");
-            }
-
+            } 
             resultSet.close();
             preparedStatement.close();
             connection.close();
@@ -90,7 +89,7 @@ public class ReturnJFrame extends JFrame {
             livreUpdateStatement.executeUpdate();
             updateStatement.close();
             livreUpdateStatement.close();
-            EmailSender.Send(getTitle(), "e.librairie.manager@gmail.com");
+            EmailSender.Send(Utilitys.getTitle(bookId), "e.librairie.manager@gmail.com");
 
         } catch (SQLException ex) {
      
