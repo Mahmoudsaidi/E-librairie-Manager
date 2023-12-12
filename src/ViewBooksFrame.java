@@ -38,16 +38,17 @@ public class ViewBooksFrame extends JFrame {
         };
         bookTable = new JTable(tableModel);
 
-        // Add a button to each row for removal
+        // Add a button to each row for removal *** Fond this solution online Tag "1"
         bookTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
         bookTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JCheckBox(), bookTable, tableModel));
 
         JScrollPane scrollPane = new JScrollPane(bookTable);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
-
+        // add to the main panel
         add(mainPanel);
     }
 
+    // displaying books from database in a list
     private void displayBooksFromDatabase() {
         String jdbcURL = "jdbc:sqlite:library.db";
 
@@ -76,6 +77,7 @@ public class ViewBooksFrame extends JFrame {
     }
 }
 
+// Helper Function *** fonded Solution in the net Tag "1"
 class ButtonRenderer extends JButton implements TableCellRenderer {
     public ButtonRenderer() {
         setOpaque(true);
@@ -89,6 +91,7 @@ class ButtonRenderer extends JButton implements TableCellRenderer {
     }
 }
 
+// Helper Function *** fonded Solution in the net Tag "1"
 class ButtonEditor extends DefaultCellEditor {
     protected JButton button;
     private DefaultTableModel tableModel;
@@ -111,6 +114,7 @@ class ButtonEditor extends DefaultCellEditor {
         });
     }
 
+    // remove book from the data base
     private void removeBookFromDatabase(int row) {
         String bookTitle = (String) tableModel.getValueAt(row, 0);
         String jdbcURL = "jdbc:sqlite:library.db";
@@ -128,7 +132,7 @@ class ButtonEditor extends DefaultCellEditor {
         }
     }
 
-    @Override
+    // Helper Function *** fonded Solution in the net Tag "1"
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
         if (isSelected) {
             button.setForeground(table.getSelectionForeground());
@@ -140,7 +144,7 @@ class ButtonEditor extends DefaultCellEditor {
         return button;
     }
 
-    @Override
+    // Helper Function *** fonded Solution in the net Tag "1"
     public Object getCellEditorValue() {
         return button.getText();
     }

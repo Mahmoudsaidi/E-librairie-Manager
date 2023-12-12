@@ -9,7 +9,9 @@ public class SQLiteDBInitializer {
 
         public void createTables() {
             try {
-                Class.forName("org.sqlite.JDBC"); // Load SQLite JDBC driver
+                Class.forName("org.sqlite.JDBC"); 
+                // Load SQLite JDBC driver
+
             } catch (ClassNotFoundException e) {
                 System.out.println("SQLite JDBC driver not found.");
                 return;
@@ -17,10 +19,12 @@ public class SQLiteDBInitializer {
     
             try (Connection connection = DriverManager.getConnection(JDBC_URL)) {
                 if (connection != null) {
+                    //connection != null File is not created or doen't exist
                     createTables(connection);
                     System.out.println("Tables created successfully.");
                 }
             } catch (SQLException e) {
+                //debugng 
                 System.out.println("SQL Exception: " + e.getMessage());
             }
         }

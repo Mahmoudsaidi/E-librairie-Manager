@@ -4,7 +4,7 @@ import javax.mail.internet.*;
 import javax.swing.JOptionPane;
 
 public class EmailSender {
-
+    //A Failed Try ... selt el profa 9atli meselch ma8ir 
     public static void sendEmail(String username, String password, String toEmail, String subject, String body) {
         Properties properties = new Properties();
         properties.put("mail.smtp.auth", "true");
@@ -39,7 +39,7 @@ public class EmailSender {
     public static void Send(String BookName,String email)
     {
             JOptionPane.showMessageDialog(null, BookName + " has Been returned and email has been send to "+ email );
-            System.out.println(BookName + " has Been returned and email has been send to "+email );
+            // System.out.println(BookName + " has Been returned and email has been send to "+email );
     }
 
    /*public static void main(String[] args) {

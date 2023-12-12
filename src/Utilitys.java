@@ -9,7 +9,7 @@ import javax.swing.JComboBox;
 
 public class Utilitys {
 
-
+    // get book id from book title *Data Base*
     public static int getBookIdFromDatabase(String bookTitle) {
         int bookId = 0;
         String jdbcURL = "jdbc:sqlite:library.db";
@@ -32,7 +32,7 @@ public class Utilitys {
 
         return bookId;
     }
-
+    //return userid from the data base using username and password if there is a problem we get -1
     public static int getUserIdFromDatabase(String username, String password) {
         int userId = -1;
         String jdbcURL = "jdbc:sqlite:library.db";
@@ -57,7 +57,7 @@ public class Utilitys {
 
         return userId;
     }
-
+    //Get title using book id
     public static String getTitle(int bookId) {
         String title = null;
         String jdbcURL = "jdbc:sqlite:library.db";
@@ -83,7 +83,7 @@ public class Utilitys {
 
         return title;
     }
-
+    //Updatte the combolist using IdUser and the rentedBookscombobox of type JComboBox<String> from the data base
     public static void updateComboList(int userId, JComboBox<String> rentedBooksComboBox) {
         String jdbcURL = "jdbc:sqlite:library.db";
 
@@ -110,7 +110,7 @@ public class Utilitys {
             ex.printStackTrace();
         }
     }
-
+    // Helper function to make sure the Combolist Containtent does not get lost in the update or get dupplicated ..
     private static boolean comboContainsItem(JComboBox<String> comboBox, String item) {
         for (int i = 0; i < comboBox.getItemCount(); i++) {
             if (comboBox.getItemAt(i).equals(item)) {
